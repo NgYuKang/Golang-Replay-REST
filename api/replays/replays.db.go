@@ -26,9 +26,10 @@ const createReplay = `--CreateReplay
 INSERT INTO replays(
 	"replayTitle",
 	"stageName",
+	"replayURL",
 	"createdAt"
 ) VALUES (
-	$1, $2, $3
+	$1, $2, $3, $4
 ) RETURNING "replayID", "replayTitle", "stageName", "createdAt"
 `
 
@@ -36,6 +37,7 @@ func (q *ReplayQueries) Create(ctx context.Context, arg CreateReplayParams) (Rep
 	row := q.db.QueryRow(ctx, createReplay,
 		arg.ReplayTitle,
 		arg.StageName,
+		arg.ReplayURL,
 		arg.CreatedAt,
 	)
 	var retData Replay

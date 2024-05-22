@@ -1,9 +1,11 @@
 package replays
 
+import "mime/multipart"
+
 type CreateReplay struct {
-	ReplayTitle string `json:"replayTitle" binding:"required"`
-	StageName   string `json:"stageName" binding:"required"`
-	// ADD MULTIPART FILE FOR REPLAY LATER
+	ReplayTitle string                `json:"replayTitle" form:"replayTitle" binding:"required"`
+	StageName   string                `json:"stageName" form:"replayTitle" binding:"required"`
+	ReplayFile  *multipart.FileHeader `json:"replayFile" form:"replayFile" binding:"required"`
 }
 
 type ListReplay struct {

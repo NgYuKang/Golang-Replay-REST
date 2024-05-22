@@ -1,18 +1,27 @@
 package replays
 
 import (
+	"Golang-Replay-REST/configs"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/google/uuid"
 )
 
 type ReplayController struct {
-	ReplayDB *ReplayQueries
+	ReplayDB   *ReplayQueries
+	uploader   *s3manager.Uploader   // Can be interfaced to allow testing
+	downloader *s3manager.Downloader // can be interfaced to allow testing
 }
 
-func NewController(replayDB *ReplayQueries) *ReplayController {
-	return &ReplayController{replayDB}
+func NewController(replayDB *ReplayQueries, uploader *s3manager.Uploader, downloader *s3manager.Downloader) *ReplayController {
+	return &ReplayController{replayDB, uploader, downloader}
 }
 
 func (ctrl *ReplayController) Create(ctx *gin.Context) {
@@ -20,12 +29,20 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 	var payload *CreateReplay
 
 	// CHANGE TO MULTIPART LATER
-	if err := ctx.ShouldBindJSON(&payload); err != nil {
+	if err := ctx.ShouldBindWith(&payload, binding.FormMultipart); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  http.StatusBadRequest,
 			"message": "failed payload",
 		})
 		return
+	}
+
+	replayFile, err := payload.ReplayFile.Open()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "failed open replay",
+		})
 	}
 
 	// Virus Scan the file
@@ -34,14 +51,30 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 
 	// Check Results, return err if malicious
 
-	// Encrypt file and upload to aws s3
+	// Encrypt file
 
-	// Get link
-
+	// Upload and get link
 	timeNow := time.Now()
+	filename := fmt.Sprintf("%s-%s", timeNow.Format("2006-01-02"), uuid.New())
+	resUpload, err := ctrl.uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(configs.EnvAWSBucket()),
+		Key:    aws.String(filename),
+		Body:   replayFile,
+	})
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "failed upload replay",
+		})
+		return
+	}
+
+	uploadedURL := resUpload.Location
 
 	args := CreateReplayParams{
 		ReplayTitle: payload.ReplayTitle,
+		ReplayURL:   uploadedURL,
 		StageName:   payload.StageName,
 	}
 	args.CreatedAt.Scan(timeNow)
