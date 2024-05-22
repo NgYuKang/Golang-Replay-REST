@@ -1,7 +1,6 @@
 package replays
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -49,7 +48,6 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 
 	replay, err := ctrl.ReplayDB.Create(ctx, args)
 	if err != nil {
-		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status":  http.StatusInternalServerError,
 			"message": "failed insert",
