@@ -9,6 +9,11 @@ services:
       - ./dbpersist:/var/lib/postgresql/data
     env_file:
       - ./.env
+  clamAV:
+    image: clamav/clamav:latest
+    container_name: clamAV
+    ports:
+      - "3310:3310"
 
 volumes:
   db:
