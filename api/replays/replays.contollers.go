@@ -17,7 +17,7 @@ func NewController(replayDB *ReplayQueries) *ReplayController {
 
 func (ctrl *ReplayController) Create(ctx *gin.Context) {
 
-	var payload *CreateContact
+	var payload *CreateReplay
 
 	// CHANGE TO MULTIPART LATER
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
