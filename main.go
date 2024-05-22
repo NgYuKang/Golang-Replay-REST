@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Golang-Replay-REST/api/replays"
 	"Golang-Replay-REST/configs"
 	"context"
 	"log"
@@ -25,5 +26,21 @@ func main() {
 	}
 
 	defer conn.Close(context.Background())
+
+	router := gin.New()
+
+	// Proxy from nginx
+	router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	router.TrustedPlatform = "X-Forwarded-For"
+
+	// gin logging and recovery stuff
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+
+	rg := router.Group("/api")
+
+	replays.SetupRoutes(rg, conn)
+
+	log.Fatal(router.Run(":8080"))
 
 }
