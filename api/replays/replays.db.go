@@ -31,7 +31,7 @@ INSERT INTO replays(
 ) RETURNING "replayID", "replayTitle", "stageName", "createdAt"
 `
 
-func (q *ReplayQueries) CreateContact(ctx context.Context, arg CreateReplayParams) (Replay, error) {
+func (q *ReplayQueries) Create(ctx context.Context, arg CreateReplayParams) (Replay, error) {
 	row := q.db.QueryRow(ctx, createReplay,
 		arg.ReplayTitle,
 		arg.StageName,

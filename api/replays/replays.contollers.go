@@ -47,7 +47,7 @@ func (ctrl *ReplayController) CreateContact(ctx *gin.Context) {
 	}
 	args.CreatedAt.Scan(timeNow)
 
-	replay, err := ctrl.ReplayDB.CreateContact(ctx, args)
+	replay, err := ctrl.ReplayDB.Create(ctx, args)
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
