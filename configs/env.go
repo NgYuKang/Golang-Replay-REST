@@ -28,3 +28,15 @@ func EnvDBSource() string {
 	return dbSource
 
 }
+
+func EnvAWSRegion() string {
+	ret := os.Getenv("AWS_S3_REGION")
+	return ret
+
+}
+
+func EnvAWSBucket() string {
+	ret := os.Getenv("AWS_S#_BUCKET")
+	return ret
+
+}
