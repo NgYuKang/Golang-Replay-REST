@@ -3,6 +3,7 @@ package replays
 import (
 	"Golang-Replay-REST/api"
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -63,12 +64,17 @@ GROUP BY
     r."stageName",
     r."createdAt"
 ORDER BY
-    $1 DESC
-LIMIT 10;
+	%s DESC
+LIMIT
+	$1;
 `
 
-func (q *ReplayQueries) List(ctx context.Context, orderBy string) ([]Replay, error) {
-	rows, err := q.db.Query(ctx, listReplays, orderBy)
+func (q *ReplayQueries) List(ctx context.Context, orderBy string, limit int) ([]Replay, error) {
+
+	// Should not have sql injection: we manually set the orderBy string with a switch.
+	builtQuery := fmt.Sprintf(listReplays, orderBy)
+
+	rows, err := q.db.Query(ctx, builtQuery, limit)
 	if err != nil {
 		return nil, err
 	}

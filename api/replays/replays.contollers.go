@@ -62,3 +62,46 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 	})
 
 }
+
+func (ctrl *ReplayController) List(ctx *gin.Context) {
+
+	var payload ListReplay
+
+	// CHANGE TO MULTIPART LATER
+	if err := ctx.ShouldBindQuery(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "failed payload",
+		})
+		return
+	}
+
+	var sortByStr string
+	switch payload.SortBy {
+	case "createdAt":
+		sortByStr = "r.\"createdAt\""
+	case "likes":
+		sortByStr = "likes"
+	default:
+		sortByStr = "r.\"createdAt\""
+	}
+
+	if payload.Limit == 0 {
+		payload.Limit = 10
+	}
+
+	replays, err := ctrl.ReplayDB.List(ctx, sortByStr, payload.Limit)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "failed to retrieve list of replays",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "Successfully retrieved list of replays",
+		"replays": replays,
+	})
+}
