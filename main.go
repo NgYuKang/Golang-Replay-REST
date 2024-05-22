@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Golang-Replay-REST/api/replaylikes"
 	"Golang-Replay-REST/api/replays"
 	"Golang-Replay-REST/configs"
 	"context"
@@ -40,6 +41,7 @@ func main() {
 	rg := router.Group("/api")
 
 	replays.SetupRoutes(rg, conn)
+	replaylikes.SetupRoutes(rg, conn)
 
 	log.Fatal(router.Run(":8080"))
 
