@@ -72,6 +72,7 @@ LIMIT
 func (q *ReplayQueries) List(ctx context.Context, orderBy string, limit int) ([]Replay, error) {
 
 	// Should not have sql injection: we manually set the orderBy string with a switch.
+	// could still sanitize it...
 	builtQuery := fmt.Sprintf(listReplays, orderBy)
 
 	rows, err := q.db.Query(ctx, builtQuery, limit)
