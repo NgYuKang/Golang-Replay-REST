@@ -40,3 +40,12 @@ func EnvAWSBucket() string {
 	return ret
 
 }
+
+func EnvEncryptKey() string {
+	ret := os.Getenv("ENCRYPT_SECRET_KEY")
+	if ret == "" {
+		ret = "SECRET_KEY"
+	}
+
+	return ret
+}
