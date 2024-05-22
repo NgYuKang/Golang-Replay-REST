@@ -19,7 +19,6 @@ func (ctrl *ReplayLikesController) Create(ctx *gin.Context) {
 
 	var payload *CreateReplayLikes
 
-	// CHANGE TO MULTIPART LATER
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  http.StatusBadRequest,
