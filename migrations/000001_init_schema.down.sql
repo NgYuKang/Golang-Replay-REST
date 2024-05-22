@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS replayComments;
+DROP TABLE IF EXISTS "replayComments";
 
-DROP TABLE IF EXISTS replayLikes;
+DROP TABLE IF EXISTS "replayLikes";
 
-DROP TABLE IF EXISTS replays CASCADE;
+DROP TABLE IF EXISTS "replays" CASCADE;
