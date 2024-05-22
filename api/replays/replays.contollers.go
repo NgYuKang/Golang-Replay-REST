@@ -29,6 +29,16 @@ func (ctrl *ReplayController) CreateContact(ctx *gin.Context) {
 		return
 	}
 
+	// Virus Scan the file
+
+	// Wait for completion
+
+	// Check Results, return err if malicious
+
+	// Encrypt file and upload to aws s3
+
+	// Get link
+
 	timeNow := time.Now()
 
 	args := CreateReplayParams{
