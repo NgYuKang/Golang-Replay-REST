@@ -1,0 +1,2 @@
+ALTER TABLE "replays"
+ADD "replayURL" VARCHAR NOT NULL;
