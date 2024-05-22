@@ -16,7 +16,7 @@ func NewController(replayDB *ReplayQueries) *ReplayController {
 	return &ReplayController{replayDB}
 }
 
-func (ctrl *ReplayController) CreateContact(ctx *gin.Context) {
+func (ctrl *ReplayController) Create(ctx *gin.Context) {
 
 	var payload *CreateContact
 

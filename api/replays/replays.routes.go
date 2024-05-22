@@ -16,7 +16,7 @@ func NewRouter(ctrl ReplayController) ReplayRouter {
 
 func (router *ReplayRouter) Routes(rg *gin.RouterGroup) {
 	r := rg.Group("replays")
-	r.POST("/", router.ctrl.CreateContact)
+	r.POST("/", router.ctrl.Create)
 }
 
 func SetupRoutes(rg *gin.RouterGroup, db api.DBTX) {
