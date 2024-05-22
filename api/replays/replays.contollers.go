@@ -2,7 +2,12 @@ package replays
 
 import (
 	"Golang-Replay-REST/configs"
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -22,6 +27,29 @@ type ReplayController struct {
 
 func NewController(replayDB *ReplayQueries, uploader *s3manager.Uploader, downloader *s3manager.Downloader) *ReplayController {
 	return &ReplayController{replayDB, uploader, downloader}
+}
+
+func decrypt(encryptedByte []byte) ([]byte, error) {
+	log.Println(encryptedByte)
+	block, err := aes.NewCipher([]byte(configs.EnvEncryptKey()))
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := encryptedByte[:gcm.NonceSize()]
+	cipherText := encryptedByte[gcm.NonceSize():]
+	plainText, err := gcm.Open(nil, nonce, cipherText, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return plainText, nil
+
 }
 
 func (ctrl *ReplayController) Create(ctx *gin.Context) {
@@ -45,6 +73,17 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 		})
 	}
 
+	defer replayFile.Close()
+
+	replayBytes, err := io.ReadAll(replayFile)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "internal err",
+		})
+		return
+	}
+
 	// Virus Scan the file
 
 	// Wait for completion
@@ -52,6 +91,33 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 	// Check Results, return err if malicious
 
 	// Encrypt file
+	block, err := aes.NewCipher([]byte(configs.EnvEncryptKey()))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "internal err",
+		})
+		return
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "internal err",
+		})
+		return
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "internal err",
+		})
+		return
+	}
+	encryptedBytes := gcm.Seal(nonce, nonce, replayBytes, nil)
+	encryptedFile := bytes.NewReader(encryptedBytes)
 
 	// Upload and get link
 	timeNow := time.Now()
@@ -59,10 +125,9 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 	resUpload, err := ctrl.uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(configs.EnvAWSBucket()),
 		Key:    aws.String(filename),
-		Body:   replayFile,
+		Body:   encryptedFile,
 	})
 	if err != nil {
-		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status":  http.StatusInternalServerError,
 			"message": "failed upload replay",
