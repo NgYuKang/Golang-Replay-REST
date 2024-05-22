@@ -36,7 +36,7 @@ func EnvAWSRegion() string {
 }
 
 func EnvAWSBucket() string {
-	ret := os.Getenv("AWS_S#_BUCKET")
+	ret := os.Getenv("AWS_S3_BUCKET")
 	return ret
 
 }
