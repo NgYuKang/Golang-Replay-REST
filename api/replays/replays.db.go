@@ -46,3 +46,53 @@ func (q *ReplayQueries) Create(ctx context.Context, arg CreateReplayParams) (Rep
 	)
 	return retData, err
 }
+
+const listReplays = `--name: ListContacts
+SELECT
+    r."replayID",
+    r."replayTitle",
+    r."stageName",
+    r."createdAt",
+    COUNT(rl."likeID") as likes
+FROM
+    "replays" r
+    LEFT JOIN "replayLikes" rl ON r."replayID" = rl."replayID"
+GROUP BY
+    r."replayID",
+    r."replayTitle",
+    r."stageName",
+    r."createdAt"
+ORDER BY
+    $1 DESC
+LIMIT 10;
+`
+
+func (q *ReplayQueries) List(ctx context.Context, orderBy string) ([]Replay, error) {
+	rows, err := q.db.Query(ctx, listReplays, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	retList := []Replay{}
+
+	for rows.Next() {
+		var ret Replay
+		if err := rows.Scan(
+			&ret.ReplayID,
+			&ret.ReplayTitle,
+			&ret.StageName,
+			&ret.CreatedAt,
+			&ret.Likes,
+		); err != nil {
+			return nil, err
+		}
+		retList = append(retList, ret)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return retList, nil
+
+}
