@@ -6,15 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ReplayRouter struct {
+type ReplayLikesRouter struct {
 	ctrl ReplayLikesController
 }
 
-func NewRouter(ctrl ReplayLikesController) ReplayRouter {
-	return ReplayRouter{ctrl: ctrl}
+func NewRouter(ctrl ReplayLikesController) ReplayLikesRouter {
+	return ReplayLikesRouter{ctrl: ctrl}
 }
 
-func (router *ReplayRouter) Routes(rg *gin.RouterGroup) {
+func (router *ReplayLikesRouter) Routes(rg *gin.RouterGroup) {
 	r := rg.Group("replay-likes")
 	r.POST("/", router.ctrl.Create)
 }
