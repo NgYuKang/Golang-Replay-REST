@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/dutchcoders/go-clamd"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 )
@@ -35,6 +36,9 @@ func main() {
 	uploadManager := s3manager.NewUploader(awsSession)
 	downloadManager := s3manager.NewDownloader(awsSession)
 
+	// clamd
+	cav := clamd.NewClamd("tcp://127.0.0.1:3310")
+
 	router := gin.New()
 
 	// Proxy from nginx
@@ -47,7 +51,7 @@ func main() {
 
 	rg := router.Group("/api")
 
-	replays.SetupRoutes(rg, conn, uploadManager, downloadManager)
+	replays.SetupRoutes(rg, conn, uploadManager, downloadManager, cav)
 	replaylikes.SetupRoutes(rg, conn)
 	replaycomments.SetupRoutes(rg, conn)
 

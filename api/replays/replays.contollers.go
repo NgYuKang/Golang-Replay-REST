@@ -14,6 +14,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/dutchcoders/go-clamd"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
@@ -23,10 +24,11 @@ type ReplayController struct {
 	ReplayDB   *ReplayQueries
 	uploader   *s3manager.Uploader   // Can be interfaced to allow testing
 	downloader *s3manager.Downloader // can be interfaced to allow testing
+	cav        *clamd.Clamd
 }
 
-func NewController(replayDB *ReplayQueries, uploader *s3manager.Uploader, downloader *s3manager.Downloader) *ReplayController {
-	return &ReplayController{replayDB, uploader, downloader}
+func NewController(replayDB *ReplayQueries, uploader *s3manager.Uploader, downloader *s3manager.Downloader, cav *clamd.Clamd) *ReplayController {
+	return &ReplayController{replayDB, uploader, downloader, cav}
 }
 
 func decrypt(encryptedByte []byte) ([]byte, error) {
@@ -64,7 +66,6 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-
 	replayFile, err := payload.ReplayFile.Open()
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -72,6 +73,9 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 			"message": "failed open replay",
 		})
 	}
+
+	// Can possibly find the file extension, and then add the file extension later
+	// OR validate if "is valid file type" depending on requirement
 
 	defer replayFile.Close()
 
@@ -85,10 +89,26 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 	}
 
 	// Virus Scan the file
+	reader := bytes.NewReader(replayBytes)
+	response, err := ctrl.cav.ScanStream(reader, nil)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "internal err failed scan file",
+		})
+		return
+	}
 
-	// Wait for completion
-
-	// Check Results, return err if malicious
+	// Check response chan
+	for res := range response {
+		if res.Status == clamd.RES_FOUND || res.Status == clamd.RES_ERROR || res.Status == clamd.RES_PARSE_ERROR {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"status":  http.StatusInternalServerError,
+				"message": "internal err failed scan file",
+			})
+			return
+		}
+	}
 
 	// Encrypt file
 	block, err := aes.NewCipher([]byte(configs.EnvEncryptKey()))
