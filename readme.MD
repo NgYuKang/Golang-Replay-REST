@@ -31,12 +31,11 @@ Returns:replayID, replayTitle, stageName, createdAt, likes, commentCount, commen
 ### Download replay file (example: localhost:8080/api/replays/file/2)
 /api/replays/file/:replayID GET
 This will download the replay file onto the backend server, and be decrypted and sent to the requester as application/octet-stream, with Content-Disposition set with attachment; filename={FILENAME}<br>
-### Like a replay
+### Like replay
 /api/replay-likes POST application/json<br>
-Creates a like on the likes table<br>
 Required fields: PostID int<br>
 Returns: replayID, likeID, createdAt<br>
-### Comment on a replay
+### Comment on replay
 /api/replay-likes POST application/json<br>
 Required fields: PostID int, commentContent string<br>
 Returns: replayID, commentID, commentContent, createdAt<br>
