@@ -26,7 +26,7 @@ const createReplay = `--CreateReplay
 INSERT INTO replays(
 	"replayTitle",
 	"stageName",
-	"replayURL",
+	"replayFileName",
 	"createdAt"
 ) VALUES (
 	$1, $2, $3, $4
@@ -37,7 +37,7 @@ func (q *ReplayQueries) Create(ctx context.Context, arg CreateReplayParams) (Rep
 	row := q.db.QueryRow(ctx, createReplay,
 		arg.ReplayTitle,
 		arg.StageName,
-		arg.ReplayURL,
+		arg.ReplayFileName,
 		arg.CreatedAt,
 	)
 	var retData Replay
@@ -107,4 +107,25 @@ func (q *ReplayQueries) List(ctx context.Context, orderBy string, limit int) ([]
 
 	return retList, nil
 
+}
+
+const getReplayFileName = `--getReplayFileName
+SELECT
+	"replayFileName"
+FROM
+	"replays"
+WHERE
+	"replayID" = $1
+LIMIT 1;
+`
+
+func (q *ReplayQueries) GetReplayFileName(ctx context.Context, replayID int) (string, error) {
+	row := q.db.QueryRow(ctx, getReplayFileName,
+		replayID,
+	)
+	var retData string
+	err := row.Scan(
+		&retData,
+	)
+	return retData, err
 }

@@ -10,11 +10,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/dutchcoders/go-clamd"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type ReplayController struct {
@@ -98,7 +100,7 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 	// Upload and get link
 	timeNow := time.Now()
 	filename := fmt.Sprintf("%s-%s", timeNow.Format("2006-01-02"), uuid.New())
-	resUpload, err := ctrl.uploader.Upload(&s3manager.UploadInput{
+	_, err = ctrl.uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(configs.EnvAWSBucket()),
 		Key:    aws.String(filename),
 		Body:   encryptedFile,
@@ -111,12 +113,10 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 		return
 	}
 
-	uploadedURL := resUpload.Location
-
 	args := CreateReplayParams{
-		ReplayTitle: payload.ReplayTitle,
-		ReplayURL:   uploadedURL,
-		StageName:   payload.StageName,
+		ReplayTitle:    payload.ReplayTitle,
+		ReplayFileName: filename,
+		StageName:      payload.StageName,
 	}
 	args.CreatedAt.Scan(timeNow)
 
@@ -178,4 +178,59 @@ func (ctrl *ReplayController) List(ctx *gin.Context) {
 		"message": "Successfully retrieved list of replays",
 		"replays": replays,
 	})
+}
+
+func (ctrl *ReplayController) DownloadReplay(ctx *gin.Context) {
+
+	var uri ReplayPath
+
+	// CHANGE TO MULTIPART LATER
+	if err := ctx.ShouldBindUri(&uri); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "failed payload",
+		})
+		return
+	}
+
+	replayFileName, err := ctrl.ReplayDB.GetReplayFileName(ctx, uri.ReplayID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  http.StatusNotFound,
+				"message": "not found",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"status":  http.StatusInternalServerError,
+				"message": "internal server err",
+			})
+		}
+		return
+	}
+	buffer := aws.NewWriteAtBuffer([]byte{})
+	_, err = ctrl.downloader.Download(buffer, &s3.GetObjectInput{
+		Bucket: aws.String(configs.EnvAWSBucket()),
+		Key:    &replayFileName,
+	})
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "failed get replay file",
+		})
+		return
+	}
+	encryptedBytes := buffer.Bytes()
+	rawBytes, err := utils.Decrypt(encryptedBytes)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "internal server err",
+		})
+		return
+	}
+
+	ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", replayFileName))
+	ctx.Data(http.StatusOK, "application/octet-stream", rawBytes)
 }
