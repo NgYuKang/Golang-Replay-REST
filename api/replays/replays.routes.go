@@ -21,6 +21,7 @@ func (router *ReplayRouter) Routes(rg *gin.RouterGroup) {
 	r.POST("/", router.ctrl.Create)
 	r.GET("/", router.ctrl.List)
 	r.GET("/file/:replayID", router.ctrl.DownloadReplay)
+	r.GET("/:replayID", router.ctrl.GetReplayByID)
 }
 
 func SetupRoutes(rg *gin.RouterGroup, db api.DBTX, uploader *s3manager.Uploader, downloader *s3manager.Downloader, cav *clamd.Clamd) {

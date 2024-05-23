@@ -233,3 +233,37 @@ func (ctrl *ReplayController) DownloadReplay(ctx *gin.Context) {
 	ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", replayFileName))
 	ctx.Data(http.StatusOK, "application/octet-stream", rawBytes)
 }
+
+func (ctrl *ReplayController) GetReplayByID(ctx *gin.Context) {
+	var uri ReplayPath
+
+	if err := ctx.ShouldBindUri(&uri); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"message": "failed payload",
+		})
+		return
+	}
+
+	replay, err := ctrl.ReplayDB.GetReplayByID(ctx, uri.ReplayID, nil, nil)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  http.StatusNotFound,
+				"message": "not found",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"status":  http.StatusInternalServerError,
+				"message": "internal server err",
+			})
+		}
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "ok",
+		"replay":  replay,
+	})
+
+}

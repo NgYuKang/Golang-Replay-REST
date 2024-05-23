@@ -2,10 +2,12 @@ package replays
 
 import (
 	"Golang-Replay-REST/api"
+	"Golang-Replay-REST/api/replaycomments"
 	"context"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func NewReplayQuery(db api.DBTX) *ReplayQueries {
@@ -128,4 +130,88 @@ func (q *ReplayQueries) GetReplayFileName(ctx context.Context, replayID int) (st
 		&retData,
 	)
 	return retData, err
+}
+
+const getReplayByID = `--name: getReplayByID
+SELECT
+    r."replayID",
+    r."replayTitle",
+    r."stageName",
+    r."createdAt",
+    COUNT(rl."likeID") as likes,
+	COUNT(rc."commentID") as comments
+FROM
+    "replays" r
+    LEFT JOIN "replayLikes" rl ON r."replayID" = rl."replayID"
+	LEFT JOIN "replayComments" rc ON r."replayID" = rc."replayID"
+WHERE
+	r."replayID" = $1
+GROUP BY
+    r."replayID",
+    r."replayTitle",
+    r."stageName",
+    r."createdAt"
+LIMIT
+	1;
+`
+
+const initialListComment = `--name: getPaginatedComment
+SELECT "commentID", "commentContent", "createdAt"
+FROM "replayComments"
+ORDER BY "createdAt" DESC
+`
+
+const paginatedListComment = `--name: getPaginatedComment
+SELECT "commentID", "commentContent", "createdAt"
+FROM "replayComments"
+WHERE "createdAt" < $1
+OR ("createdAt" = $1 AND "commentID" > $2)
+ORDER BY "createdAt" DESC
+LIMIT 20;
+`
+
+func (q *ReplayQueries) GetReplayByID(ctx context.Context, replayID int, lastID *int, lastCreatedAt *pgtype.Timestamp) (*ReplayDetail, error) {
+	row := q.db.QueryRow(ctx, getReplayByID,
+		replayID,
+	)
+	var ret ReplayDetail
+	err := row.Scan(
+		&ret.ReplayID,
+		&ret.ReplayTitle,
+		&ret.StageName,
+		&ret.CreatedAt,
+		&ret.Likes,
+		&ret.CommentCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Currently not going to paginate comment, just going to show all
+	var rowComments pgx.Rows
+	if lastID == nil || lastCreatedAt == nil {
+		rowComments, err = q.db.Query(ctx, initialListComment)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		rowComments, err = q.db.Query(ctx, paginatedListComment, *lastCreatedAt, *lastID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	defer rowComments.Close()
+	for rowComments.Next() {
+		var retComment replaycomments.ReplayComments
+		if err := rowComments.Scan(
+			&retComment.CommentID,
+			&retComment.CommentContent,
+			&retComment.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		ret.Comments = append(ret.Comments, retComment)
+	}
+	return &ret, nil
 }
