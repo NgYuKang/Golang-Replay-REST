@@ -56,10 +56,12 @@ SELECT
     r."replayTitle",
     r."stageName",
     r."createdAt",
-    COUNT(rl."likeID") as likes
+    COUNT(rl."likeID") as likes,
+	COUNT(rc."commentID") as comments
 FROM
     "replays" r
     LEFT JOIN "replayLikes" rl ON r."replayID" = rl."replayID"
+	LEFT JOIN "replayComments" rc ON r."replayID" = rc."replayID"
 GROUP BY
     r."replayID",
     r."replayTitle",
@@ -92,6 +94,7 @@ func (q *ReplayQueries) List(ctx context.Context, orderBy string, limit int) ([]
 			&ret.StageName,
 			&ret.CreatedAt,
 			&ret.Likes,
+			&ret.CommentCount,
 		); err != nil {
 			return nil, err
 		}
