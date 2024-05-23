@@ -39,3 +39,10 @@ Returns: replayID, likeID, createdAt<br>
 /api/replay-likes POST application/json<br>
 Required fields: PostID int, commentContent string<br>
 Returns: replayID, commentID, commentContent, createdAt<br>
+## What can be improved for scaling and high performance
+- The comment shown in post detail should be a different endpoint to list comments, with proper keyset/range query pagination<br>
+- Ensure file size limit for replay<br>
+- Use virustotal api for scanning (i originally wanted to, but for this case I opted for clamav, as i was thinking about the pricing for virustotal)<br>
+- Compress the replay file before encrypting<br>
+- User authentication should be implemented for access control, so comments and likes can be linked to user<br>
+- (NOTE) The likes should be counted accurately because I am not updating the replay row again and again, inserts should make the count accurate.
