@@ -2,13 +2,10 @@ package replays
 
 import (
 	"Golang-Replay-REST/configs"
+	"Golang-Replay-REST/utils"
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -29,29 +26,6 @@ type ReplayController struct {
 
 func NewController(replayDB *ReplayQueries, uploader *s3manager.Uploader, downloader *s3manager.Downloader, cav *clamd.Clamd) *ReplayController {
 	return &ReplayController{replayDB, uploader, downloader, cav}
-}
-
-func decrypt(encryptedByte []byte) ([]byte, error) {
-	log.Println(encryptedByte)
-	block, err := aes.NewCipher([]byte(configs.EnvEncryptKey()))
-	if err != nil {
-		return nil, err
-	}
-
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
-
-	nonce := encryptedByte[:gcm.NonceSize()]
-	cipherText := encryptedByte[gcm.NonceSize():]
-	plainText, err := gcm.Open(nil, nonce, cipherText, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return plainText, nil
-
 }
 
 func (ctrl *ReplayController) Create(ctx *gin.Context) {
@@ -111,7 +85,7 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 	}
 
 	// Encrypt file
-	block, err := aes.NewCipher([]byte(configs.EnvEncryptKey()))
+	encryptedBytes, err := utils.Encrypt(replayBytes)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status":  http.StatusInternalServerError,
@@ -119,24 +93,6 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 		})
 		return
 	}
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"status":  http.StatusInternalServerError,
-			"message": "internal err",
-		})
-		return
-	}
-
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"status":  http.StatusInternalServerError,
-			"message": "internal err",
-		})
-		return
-	}
-	encryptedBytes := gcm.Seal(nonce, nonce, replayBytes, nil)
 	encryptedFile := bytes.NewReader(encryptedBytes)
 
 	// Upload and get link
