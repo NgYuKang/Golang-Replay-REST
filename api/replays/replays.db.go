@@ -58,17 +58,20 @@ SELECT
     r."replayTitle",
     r."stageName",
     r."createdAt",
-    COUNT(rl."likeID") as likes,
-	COUNT(rc."commentID") as comments
+    COALESCE(likes.likes_count, 0) as likes,
+    COALESCE(comments.comments_count, 0) as comments
 FROM
     "replays" r
-    LEFT JOIN "replayLikes" rl ON r."replayID" = rl."replayID"
-	LEFT JOIN "replayComments" rc ON r."replayID" = rc."replayID"
-GROUP BY
-    r."replayID",
-    r."replayTitle",
-    r."stageName",
-    r."createdAt"
+    LEFT JOIN (
+        SELECT "replayID", COUNT("likeID") as likes_count
+        FROM "replayLikes"
+        GROUP BY "replayID"
+    ) likes ON r."replayID" = likes."replayID"
+    LEFT JOIN (
+        SELECT "replayID", COUNT("commentID") as comments_count
+        FROM "replayComments"
+        GROUP BY "replayID"
+    ) comments ON r."replayID" = comments."replayID"
 ORDER BY
 	%s DESC
 LIMIT
@@ -138,19 +141,22 @@ SELECT
     r."replayTitle",
     r."stageName",
     r."createdAt",
-    COUNT(rl."likeID") as likes,
-	COUNT(rc."commentID") as comments
+    COALESCE(likes.likes_count, 0) as likes,
+    COALESCE(comments.comments_count, 0) as comments
 FROM
     "replays" r
-    LEFT JOIN "replayLikes" rl ON r."replayID" = rl."replayID"
-	LEFT JOIN "replayComments" rc ON r."replayID" = rc."replayID"
+    LEFT JOIN (
+        SELECT "replayID", COUNT("likeID") as likes_count
+        FROM "replayLikes"
+        GROUP BY "replayID"
+    ) likes ON r."replayID" = likes."replayID"
+    LEFT JOIN (
+        SELECT "replayID", COUNT("commentID") as comments_count
+        FROM "replayComments"
+        GROUP BY "replayID"
+    ) comments ON r."replayID" = comments."replayID"
 WHERE
 	r."replayID" = $1
-GROUP BY
-    r."replayID",
-    r."replayTitle",
-    r."stageName",
-    r."createdAt"
 LIMIT
 	1;
 `
