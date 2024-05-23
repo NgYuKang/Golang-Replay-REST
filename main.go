@@ -6,6 +6,7 @@ import (
 	"Golang-Replay-REST/api/replays"
 	"Golang-Replay-REST/configs"
 	"context"
+	"flag"
 	"log"
 	"time"
 
@@ -17,7 +18,12 @@ import (
 
 func main() {
 
-	configs.LoadEnv()
+	useFile := flag.Bool("useFile", true, "Whether to use env file")
+	flag.Parse()
+
+	if *useFile {
+		configs.LoadEnv()
+	}
 	mode := configs.EnvGinMode()
 	gin.SetMode(mode)
 
