@@ -231,6 +231,8 @@ func (ctrl *ReplayController) DownloadReplay(ctx *gin.Context) {
 		return
 	}
 
+	// I could've returned this in json, in base64, but base64 is inefficient afaik
+	// so i make it so that you "download" the file
 	ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", replayFileName))
 	ctx.Data(http.StatusOK, "application/octet-stream", rawBytes)
 }
