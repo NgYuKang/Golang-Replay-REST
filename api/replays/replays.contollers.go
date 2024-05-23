@@ -34,7 +34,6 @@ func (ctrl *ReplayController) Create(ctx *gin.Context) {
 
 	var payload *CreateReplay
 
-	// CHANGE TO MULTIPART LATER
 	if err := ctx.ShouldBindWith(&payload, binding.FormMultipart); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  http.StatusBadRequest,
@@ -141,7 +140,6 @@ func (ctrl *ReplayController) List(ctx *gin.Context) {
 
 	var payload ListReplay
 
-	// CHANGE TO MULTIPART LATER
 	if err := ctx.ShouldBindQuery(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  http.StatusBadRequest,
@@ -184,7 +182,6 @@ func (ctrl *ReplayController) DownloadReplay(ctx *gin.Context) {
 
 	var uri ReplayPath
 
-	// CHANGE TO MULTIPART LATER
 	if err := ctx.ShouldBindUri(&uri); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  http.StatusBadRequest,
