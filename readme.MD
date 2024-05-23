@@ -9,7 +9,18 @@ Please ensure ENCRYPT_SECRET_KEY is a AES key of at least 16 bytes. The key can 
 
 ## Routes
 ### Get Top 10 replays
-/api/replays GET
+/api/replays GET <br>
+This will list 10 replays either the latest 10 replays, or top 10 highest liked replays.<br>
+The following query parameters can be used:<br>
+sortBy (string): either createdAt or likes to determine which sorting to be used<br>
+limit (int): Must be bigger than 0, by default is set to 10 if not provided, gives the top N results.<br>
+Returns:<br>
+replayID<br>
+replayTitle<br>
+stageName<br>
+createdAt<br>
+likes<br>
+commentCount<br>
 ### Create replay
 /api/replays POST
 ### Get replay details
