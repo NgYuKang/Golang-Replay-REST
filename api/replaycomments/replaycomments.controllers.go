@@ -1,10 +1,12 @@
 package replaycomments
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type ReplayCommentsController struct {
@@ -37,10 +39,18 @@ func (ctrl *ReplayCommentsController) Create(ctx *gin.Context) {
 
 	ret, err := ctrl.ReplayLikesDB.Create(ctx, args)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"status":  http.StatusInternalServerError,
-			"message": "failed insert",
-		})
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"status":  http.StatusNotFound,
+				"message": "not found",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"status":  http.StatusInternalServerError,
+				"message": "internal server err",
+			})
+		}
 		return
 	}
 
