@@ -8,26 +8,35 @@ An example env file has been given named .env.example , the only thing required 
 Please ensure ENCRYPT_SECRET_KEY is a AES key of at least 16 bytes. The key can be generated in python using  os.urandom(16).hex()<br>
 
 ## Routes
+It is recommended to use Postman to test out the api. 
 ### Get Top 10 replays
 /api/replays GET <br>
 This will list 10 replays either the latest 10 replays, or top 10 highest liked replays.<br>
 The following query parameters can be used:<br>
 sortBy (string): either createdAt or likes to determine which sorting to be used<br>
 limit (int): Must be bigger than 0, by default is set to 10 if not provided, gives the top N results.<br>
-Returns:<br>
-replayID<br>
-replayTitle<br>
-stageName<br>
-createdAt<br>
-likes<br>
-commentCount<br>
+Returns:replayID, replayTitle, stageName, createdAt, likes, commentCount<br>
 ### Create replay
-/api/replays POST
+/api/replays POST multipart/form-data<br>
+Creates a replay. The Content type must be set to multipart/form-data, because we are uploading files to the API<br>
+File uploaded will be encrypted and sent to AWS S3.<br>
+Required fields:<br>
+replayTitle: string<br>
+stageTitle: string<br>
+replayFile: file<br>
+Returns JSON:replayID, replayTitle, stageName, createdAt, likes, commentCount<br>
 ### Get replay details
-/api/replays/:replayID GET
-### Download replay file
+/api/replays/:replayID GET (example: localhost:8080/api/replays/2)<br>
+Returns:replayID, replayTitle, stageName, createdAt, likes, commentCount, comments (list of comments)<br>
+### Download replay file (example: localhost:8080/api/replays/file/2)
 /api/replays/file/:replayID GET
+This will download the replay file onto the backend server, and be decrypted and sent to the requester as application/octet-stream, with Content-Disposition set with attachment; filename={FILENAME}<br>
 ### Like a replay
-/api/replay-likes
+/api/replay-likes POST application/json<br>
+Creates a like on the likes table<br>
+Required fields: PostID int<br>
+Returns: replayID, likeID, createdAt<br>
 ### Comment on a replay
-/api/replay-likes
+/api/replay-likes POST application/json<br>
+Required fields: PostID int, commentContent string<br>
+Returns: replayID, commentID, commentContent, createdAt<br>
