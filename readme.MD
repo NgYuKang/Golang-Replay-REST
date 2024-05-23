@@ -8,15 +8,15 @@ An example env file has been given named .env.example , the only thing required 
 Please ensure ENCRYPT_SECRET_KEY is a AES key of at least 16 bytes. The key can be generated in python using  os.urandom(16).hex()<br>
 
 ## Routes
-#### Get Top 10 replays
+### Get Top 10 replays
 /api/replays GET
-#### Create replay
+### Create replay
 /api/replays POST
-#### Get replay details
+### Get replay details
 /api/replays/:replayID GET
-#### Download replay file
+### Download replay file
 /api/replays/file/:replayID GET
-#### Like a replay
+### Like a replay
 /api/replay-likes
-#### Comment on a replay
+### Comment on a replay
 /api/replay-likes
