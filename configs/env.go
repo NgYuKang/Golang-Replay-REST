@@ -29,6 +29,16 @@ func EnvDBSource() string {
 
 }
 
+func EnvDBSourceDocker() string {
+	// user := os.Getenv("POSTGRES_USER")
+	// password := os.Getenv("POSTGRES_PASSWORD")
+	// database := os.Getenv("POSTGRES_DB")
+
+	// return fmt.Sprintf("postgresql://%s:%s@host.docker.internal:5432/%s?sslmode=disable", user, password, database)
+	dbSource := os.Getenv("DB_SOURCE_DOCKER")
+	return dbSource
+}
+
 func EnvAWSRegion() string {
 	ret := os.Getenv("AWS_S3_REGION")
 	return ret
@@ -43,6 +53,15 @@ func EnvAWSBucket() string {
 
 func EnvEncryptKey() string {
 	ret := os.Getenv("ENCRYPT_SECRET_KEY")
+	if ret == "" {
+		ret = "SECRET_KEY"
+	}
+
+	return ret
+}
+
+func EnvClamDURL() string {
+	ret := os.Getenv("CLAMD_URL")
 	if ret == "" {
 		ret = "SECRET_KEY"
 	}

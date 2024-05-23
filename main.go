@@ -20,18 +20,26 @@ func main() {
 
 	useFile := flag.Bool("useFile", true, "Whether to use env file")
 	flag.Parse()
-
+	var dbSource string
+	var clamdURL string
 	if *useFile {
 		configs.LoadEnv()
+		dbSource = configs.EnvDBSource()
+		clamdURL = "tcp://127.0.0.1:3310"
+	} else {
+		dbSource = configs.EnvDBSourceDocker()
+		clamdURL = configs.EnvClamDURL()
 	}
+	log.Println(dbSource)
 	mode := configs.EnvGinMode()
 	gin.SetMode(mode)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
-	conn, err := pgx.Connect(ctx, configs.EnvDBSource())
+	conn, err := pgx.Connect(ctx, dbSource)
 	if err != nil {
+		log.Println(err)
 		log.Fatal("Failed to connect to database on startup, exiting...")
 	}
 
@@ -43,7 +51,7 @@ func main() {
 	downloadManager := s3manager.NewDownloader(awsSession)
 
 	// clamd
-	cav := clamd.NewClamd("tcp://127.0.0.1:3310")
+	cav := clamd.NewClamd(clamdURL)
 
 	router := gin.New()
 

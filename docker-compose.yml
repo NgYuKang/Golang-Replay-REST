@@ -9,11 +9,34 @@ services:
       - ./dbpersist:/var/lib/postgresql/data
     env_file:
       - ./.env
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
   clamAV:
     image: clamav/clamav:latest
     container_name: clamAV
     ports:
       - "3310:3310"
+    networks:
+      - backend
+  api:
+    container_name: replayapi
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clamAV:
+        condition: service_started
+    networks:
+      - backend
 
-volumes:
-  db:
+networks:
+  backend:
