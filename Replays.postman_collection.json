@@ -149,14 +149,14 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"replayID\": 0\r\n}",
+					"raw": "{\r\n    \"replayID\": 1,\r\n    \"commentContent\": \"test\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
 						}
 					}
 				},
-				"url": "{{server_ip}}/api/replay-likes/"
+				"url": "{{server_ip}}/api/replay-comments/"
 			},
 			"response": []
 		}
