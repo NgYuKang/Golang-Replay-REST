@@ -1,0 +1,193 @@
+{
+	"info": {
+		"_postman_id": "7c86d092-dd11-45e7-aed9-6da1c6154a1f",
+		"name": "Replays",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "18575176"
+	},
+	"item": [
+		{
+			"name": "Get Replay",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/api/replays/",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"api",
+						"replays",
+						""
+					],
+					"query": [
+						{
+							"key": "sortBy",
+							"value": null,
+							"description": "either createdAt or likes",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": null,
+							"description": "gt > 0, int",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Replay Details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/api/replays/:replayID",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"api",
+						"replays",
+						":replayID"
+					],
+					"variable": [
+						{
+							"key": "replayID",
+							"value": "",
+							"description": "ID of the replay"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download Replay",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{server_ip}}/api/replays/file/:replayID",
+					"host": [
+						"{{server_ip}}"
+					],
+					"path": [
+						"api",
+						"replays",
+						"file",
+						":replayID"
+					],
+					"variable": [
+						{
+							"key": "replayID",
+							"value": "",
+							"description": "ID of the replay"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Replay",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "replayTitle",
+							"value": "Test",
+							"description": "title",
+							"type": "text"
+						},
+						{
+							"key": "stageName",
+							"value": "Test",
+							"description": "stage name",
+							"type": "text"
+						},
+						{
+							"key": "replayFile",
+							"description": "file",
+							"type": "file",
+							"src": "/H:/ExampleFile.txt"
+						}
+					]
+				},
+				"url": "{{server_ip}}/api/replays/"
+			},
+			"response": []
+		},
+		{
+			"name": "Like Replay",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"replayID\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{server_ip}}/api/replay-likes/"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Replay Comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"replayID\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{server_ip}}/api/replay-likes/"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "server_ip",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

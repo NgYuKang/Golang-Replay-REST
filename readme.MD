@@ -8,7 +8,7 @@ An example env file has been given named .env.example , the only thing required 
 Please ensure ENCRYPT_SECRET_KEY is a AES key of at least 16 bytes. The key can be generated in python using  os.urandom(16).hex()<br>
 
 ## Routes
-It is recommended to use Postman to test out the api. 
+It is recommended to use Postman to test out the api. Import the json file titled Replays.postman_collection.json from the repo into postman for easier testing.
 ### Get Top 10 replays
 /api/replays GET <br>
 This will list 10 replays either the latest 10 replays, or top 10 highest liked replays.<br>
