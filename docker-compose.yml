@@ -23,6 +23,17 @@ services:
       - "3310:3310"
     networks:
       - backend
+  migrate:
+    container_name: migrate
+    volumes:
+      - ./migrations:/migrations
+    image: migrate/migrate:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+    command: ["-path", "migrations", "-database",  "${DB_SOURCE_DOCKER}", "--verbose", "up"]
   api:
     container_name: replayapi
     build: .
@@ -35,6 +46,8 @@ services:
         condition: service_healthy
       clamAV:
         condition: service_started
+      migrate:
+        condition: service_completed_successfully
     networks:
       - backend
 
